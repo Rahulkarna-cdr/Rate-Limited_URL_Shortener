@@ -1,6 +1,6 @@
-//App.js
 import express from 'express'
 import shortenRouter from './routes/shorten.routes.js'
+import analyticsRouter from './routes/analytics.routes.js'
 import { handleRedirect } from './controllers/shorten.controller.js';
 
 const app = express();
@@ -13,6 +13,7 @@ app.get("/health", (_req, res) => {
 
 app.use("/api/shorten", shortenRouter);
 app.get('/:shortCode', handleRedirect);
+app.use("/api/analytics", analyticsRouter)
 
 
 export default app;

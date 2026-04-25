@@ -13,13 +13,13 @@ export const handleShortenUrl = async (req, res) => {
         const { originalUrl } = req.body;
 
         if (!originalUrl || typeof originalUrl !== "string" || !/^https?:\/\/.+\..+/.test(originalUrl)) {
-            return res.status(200).json({ msg: "Invalid URL"})
+            return res.status(400).json({ msg: "Invalid URL"})
         }
 
     //check if the URL is already shortened
     const existingUrl = await Url.findOne({ originalUrl })
     if (existingUrl) {
-        return res.status(400).json({ msg: "URL already shortened", shortUrl: existingUrl.shortCode});
+        return res.status(200).json({ msg: "URL already shortened", shortUrl: existingUrl.shortCode});
     }
 
     //generate short code using generateAlias function
