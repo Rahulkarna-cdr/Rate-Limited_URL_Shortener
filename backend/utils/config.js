@@ -13,5 +13,6 @@ const validateEnvVariable = (varName) =>{
 }
 
 export const config = {
-    PORT: validateEnvVariable("PORT")
+    PORT: validateEnvVariable("PORT"),
+    MONGODB_URI: validateEnvVariable("MONGODB_URI")
 }

@@ -2,17 +2,17 @@ import mongoose from "mongoose";
 
 const clickEventSchema = new mongoose.Schema(
   {
-    shortCode: {
-      type: String,
+    urlId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Url",
       required: true,
-      trim: true,
-      index: true
+      index: true,
     },
     clickedAt: {
       type: Date,
       required: true,
       default: Date.now,
-      index: true
+      index: true,
     }
   },
   
