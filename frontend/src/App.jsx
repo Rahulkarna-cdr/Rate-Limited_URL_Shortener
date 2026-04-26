@@ -10,11 +10,6 @@ import {
   shortenUrl,
 } from "./services/shortenerApi";
 
-function generateSevenDaySeries(totalClicks) {
-  // Placeholder distribution until backend provides real day-wise data.
-  const pattern = [0.08, 0.12, 0.18, 0.24, 0.16, 0.09, 0.13];
-  return pattern.map((p) => Math.max(1, Math.round(totalClicks * p)));
-}
 
 export default function App() {
   const [originalUrl, setOriginalUrl] = useState("");
@@ -35,8 +30,8 @@ export default function App() {
   }, [shortenResult]);
 
   const analyticsSeries = useMemo(() => {
-    if (!analyticsResult?.totalClicks) return [];
-    return generateSevenDaySeries(analyticsResult.totalClicks);
+    if (!analyticsResult?.clicksSeries) return [];
+    return analyticsResult.clicksSeries;
   }, [analyticsResult]);
 
   async function handleShortenSubmit(e) {
