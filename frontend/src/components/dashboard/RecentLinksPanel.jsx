@@ -26,14 +26,14 @@ export default function RecentLinksPanel({ recentLinks, buildShortLink, onSelect
               recentLinks.map((row) => (
                 <tr key={row.shortCode}>
                   <td>
-                    <button
-                      type="button"
-                      className="link-like"
-                      onClick={() => onSelectCode(row.shortCode)}
-                      title="Load this code in analytics form"
+                    <a
+                      href={buildShortLink(row.shortCode)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="short-link-anchor"
                     >
                       {buildShortLink(row.shortCode)}
-                    </button>
+                    </a>
                   </td>
                   <td className="truncate-cell">{row.originalUrl}</td>
                   <td>{row.clicks}</td>
