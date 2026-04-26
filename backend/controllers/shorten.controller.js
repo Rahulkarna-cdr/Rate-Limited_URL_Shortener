@@ -8,12 +8,14 @@ const generateAlias = (length=3)=>{
     return bytes.toString("hex")
 }
 
-export const handleShortenUrl = async (req, res) => {
+export const handleShortenUrl = async (req, res, next) => {
     try {
         const { originalUrl } = req.body;
 
         if (!originalUrl || typeof originalUrl !== "string" || !/^https?:\/\/.+\..+/.test(originalUrl)) {
-            return res.status(400).json({ msg: "Invalid URL"})
+          const err = new Error("Invalid URL");
+          err.statusCode = 400;
+          throw err;
         }
 
     //check if the URL is already shortened
@@ -33,18 +35,20 @@ export const handleShortenUrl = async (req, res) => {
     const savedUrl = await newUrl.save()
     return res.status(201).json({msg:"URL shortened successfully", shortUrl: savedUrl.shortCode});
 } catch (error) {
-    res.status(500).json({ msg: "Internal server error", error: error.message});
+    return next(error)
   }
 };
 
 // GET /:shortCode
-export const handleRedirect = async (req, res) => {
+export const handleRedirect = async (req, res, next) => {
     try {
       const { shortCode } = req.params;
       const foundUrl = await Url.findOne({ shortCode });
       
       if (!foundUrl) {
-        return res.status(404).json({ msg: "Short URL not found" });
+        const err = new Error("Short URL not found");
+        err.statusCode = 404;
+        throw err;
       }
       // fire-and-forget is okay, but awaited write is safer initially
       const redirectUrl = new ClickEvent({
@@ -54,7 +58,7 @@ export const handleRedirect = async (req, res) => {
       await redirectUrl.save()
       return res.status(302).redirect(foundUrl.originalUrl);
     } catch (error) {
-      return res.status(500).json({ msg: "Internal server error", error: error.message });
+       return next(error)
     }
   };
   
