@@ -21,6 +21,7 @@ export default function App() {
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState("");
   const [analyticsResult, setAnalyticsResult] = useState(null);
+  const [retryAfter, setRetryAfter] = useState(null);
 
   // Local session-only recent links (until backend list endpoint exists)
   const [recentLinks, setRecentLinks] = useState([]);
@@ -36,6 +37,12 @@ export default function App() {
 
   async function handleShortenSubmit(e) {
     e.preventDefault();
+
+    // Block if timer is active
+    if (retryAfter !== null) {
+        return;
+    }
+
     setShortenLoading(true);
     setShortenError("");
 
@@ -62,7 +69,23 @@ export default function App() {
       setOriginalUrl("");
     } catch (err) {
       if (err.status === 429 && err.retryAfter) {
-        setShortenError(`${err.message} Retry in ${err.retryAfter}s.`);
+        const waitTime = err.retryAfter;
+        setRetryAfter(waitTime);
+        setShortenError(`${err.message} Retry in ${waitTime}s.`);
+
+        // Start countdown
+        const interval = setInterval(() => {
+          setRetryAfter((prev) => {
+            const next = prev - 1;
+            if (next <= 0) {
+              clearInterval(interval);
+              setShortenError("");
+              return null;
+            }
+            setShortenError(`Rate limited. Try again in ${next}s`);
+            return next;
+          });
+        }, 1000);
       } else {
         setShortenError(err.message || "Unable to shorten URL.");
       }
@@ -117,6 +140,7 @@ export default function App() {
           error={shortenError}
           shortenResult={shortenResult}
           shortLink={shortLink}
+          retryAfter={retryAfter}
           onSubmit={handleShortenSubmit}
           onCopy={handleCopy}
         />

@@ -5,9 +5,12 @@ export default function ShortenPanel({
   error,
   shortenResult,
   shortLink,
+  retryAfter,
   onSubmit,
   onCopy,
 }) {
+  const isDisabled = loading || retryAfter !== null;
+
   return (
     <section className="panel">
       <label className="field-label" htmlFor="long-url">
@@ -21,16 +24,19 @@ export default function ShortenPanel({
           placeholder="https://example.com/"
           value={originalUrl}
           onChange={(event) => setOriginalUrl(event.target.value)}
+          disabled={isDisabled}
           required
         />
-        <button type="submit" disabled={loading}>
-          {loading ? "SHORTENING..." : "SHORTEN"}
+        <button type="submit" disabled={isDisabled}>
+          {loading ? "SHORTENING..." : retryAfter ? `${retryAfter}s` : "SHORTEN"}
         </button>
       </form>
 
       <div className="form-meta">
-        <p className="error-text">{error || " "}</p>
-        <span className="rate-pill">Rate limit: 5/min per IP</span>
+        <p className="error-text">
+          {retryAfter ? `Rate limited. Try again in ${retryAfter}s` : error || " "}
+      </p>
+        <span className="rate-pill">5 Requests per minute</span>
       </div>
 
       {shortenResult && (
