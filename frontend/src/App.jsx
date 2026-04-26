@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import "./App.css";
 import TopBar from "./components/dashboard/TopBar";
 import ShortenPanel from "./components/dashboard/ShortenPanel";
@@ -7,9 +7,9 @@ import AnalyticsPanel from "./components/dashboard/AnalyticsPanel";
 import {
   buildShortLink,
   fetchAnalytics,
+  fetchRecentLinks,
   shortenUrl,
 } from "./services/shortenerApi";
-
 
 export default function App() {
   const [originalUrl, setOriginalUrl] = useState("");
@@ -23,8 +23,13 @@ export default function App() {
   const [analyticsResult, setAnalyticsResult] = useState(null);
   const [retryAfter, setRetryAfter] = useState(null);
 
-  // Local session-only recent links (until backend list endpoint exists)
   const [recentLinks, setRecentLinks] = useState([]);
+
+  // Fetch recent links from backend on mount
+  useEffect(() => {
+    fetchRecentLinks().then(setRecentLinks).catch(() => { });
+  }, []);
+
   const shortLink = useMemo(() => {
     if (!shortenResult?.shortUrl) return "";
     return buildShortLink(shortenResult.shortUrl);
@@ -38,10 +43,7 @@ export default function App() {
   async function handleShortenSubmit(e) {
     e.preventDefault();
 
-    // Block if timer is active
-    if (retryAfter !== null) {
-        return;
-    }
+    if (retryAfter !== null) return;
 
     setShortenLoading(true);
     setShortenError("");
@@ -50,30 +52,13 @@ export default function App() {
       const body = await shortenUrl(originalUrl.trim());
 
       setShortenResult(body);
-
-      const code = body.shortUrl;
-      setRecentLinks((prev) => {
-        const exists = prev.some((item) => item.shortCode === code);
-        if (exists) return prev;
-        return [
-          {
-            shortCode: code,
-            originalUrl: originalUrl.trim(),
-            clicks: "-",
-            status: "ACTIVE",
-          },
-          ...prev,
-        ].slice(0, 6);
-      });
-
+      fetchRecentLinks().then(setRecentLinks).catch(() => { });
       setOriginalUrl("");
     } catch (err) {
       if (err.status === 429 && err.retryAfter) {
         const waitTime = err.retryAfter;
         setRetryAfter(waitTime);
-        setShortenError(`${err.message} Retry in ${waitTime}s.`);
 
-        // Start countdown
         const interval = setInterval(() => {
           setRetryAfter((prev) => {
             const next = prev - 1;
@@ -82,7 +67,6 @@ export default function App() {
               setShortenError("");
               return null;
             }
-            setShortenError(`Rate limited. Try again in ${next}s`);
             return next;
           });
         }, 1000);
@@ -104,7 +88,6 @@ export default function App() {
 
       setAnalyticsResult(body);
 
-      // Update local table click count if row exists
       setRecentLinks((prev) =>
         prev.map((item) =>
           item.shortCode === body.shortCode

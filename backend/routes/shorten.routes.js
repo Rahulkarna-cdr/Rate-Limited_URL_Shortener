@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { handleShortenUrl } from "../controllers/shorten.controller.js";
+import { handleShortenUrl, handleRecentLinks } from "../controllers/shorten.controller.js";
 import { shortenRateLimiter } from "../middlewares/rateLimit.middleware.js";
 
 const router = Router();
 
-router.post("/", shortenRateLimiter, handleShortenUrl );
+router.post("/", shortenRateLimiter, handleShortenUrl);
+router.get("/recent", handleRecentLinks)
 
 export default router;

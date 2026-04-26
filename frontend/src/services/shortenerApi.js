@@ -30,6 +30,13 @@ export const shortenUrl = async (originalUrl) => {
   return body;
 };
 
+export const fetchRecentLinks = async () => {
+  const response = await fetch(`${API_BASE}/api/shorten/recent`);
+  const body = await toJson(response);
+  if (!response.ok) throw createApiError(response.status, body, response.headers);
+  return body.links;
+};
+
 export const fetchAnalytics = async (shortCode) => {
   const response = await fetch(
     `${API_BASE}/api/analytics/${encodeURIComponent(shortCode)}`
