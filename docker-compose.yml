@@ -1,0 +1,33 @@
+services:
+  # The Database
+  mongo-db:
+    image: mongo:latest
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+
+  # The Backend API
+  backend:
+    build: ./backend
+    restart: always
+    environment:
+      - MONGODB_URI=mongodb://mongo-db:27017/url_shortener
+      - PORT=3004
+    ports:
+      - "3004:3004"
+    depends_on:
+      - mongo-db
+
+  # The Frontend UI
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:3004
+    ports:
+      - "5178:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo-data:
